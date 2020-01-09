@@ -9,4 +9,7 @@ __pycache__
 log.txt
 **/log.txt
 
+.vscode
+
 ref
+local

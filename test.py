@@ -4,15 +4,15 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import tensorflow as tf
 from tensorflow import keras
 
+cpus = tf.config.list_physical_devices('CPU')
+gpus = tf.config.list_physical_devices('GPU')
+
 print('TensorFlow version:', tf.__version__)
-if tf.test.is_gpu_available():
+if gpus and len(gpus) > 0:
     print('GPU available')
 print()
 
-cpus = tf.config.experimental.list_physical_devices('CPU')
 print('Number of available CPU:', len(cpus))
-
-gpus = tf.config.experimental.list_physical_devices('GPU')
 print('Number of available GPU:', len(gpus))
 print()
 

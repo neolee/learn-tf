@@ -36,3 +36,10 @@ Requires that libcudnn7 is installed above.
 sudo apt-get install -y --no-install-recommends libnvinfer6=6.0.1-1+cuda10.1 \
     libnvinfer-dev=6.0.1-1+cuda10.1
 ```
+
+# Install ipywidgets for some samples
+
+```shell
+pip install ipywidgets
+jupyter labextension install @jupyter-widgets/jupyterlab-manager
+```

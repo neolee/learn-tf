@@ -35,5 +35,4 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 
 model.fit(x=x_train, y=y_train, epochs=10)
-
 model.evaluate(x_test, y_test)

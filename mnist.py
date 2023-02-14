@@ -1,38 +1,44 @@
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Dropout, Flatten, MaxPooling2D
+import tensorflow_datasets as tfds
 
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+(ds_train, ds_test), ds_info = tfds.load(
+    'mnist',
+    split=['train', 'test'],
+    shuffle_files=True,
+    as_supervised=True,
+    with_info=True,
+)
 
-image_index = 7777
-print(y_train[image_index])
-print(x_train.shape)
+def normalize_img(image, label):
+  """Normalizes images: `uint8` -> `float32`."""
+  return tf.cast(image, tf.float32) / 255., label
 
-# Reshaping the array to 4-dims so that it can work with the Keras API
-x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
-x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
-input_shape = (28, 28, 1)
-# Making sure that the values are float so that we can get decimal points after division
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
-# Normalizing the RGB codes by dividing it to the max RGB value.
-x_train /= 255
-x_test /= 255
-print('x_train shape:', x_train.shape)
-print('Number of images in x_train', x_train.shape[0])
-print('Number of images in x_test', x_test.shape[0])
+ds_train = ds_train.map(
+    normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+ds_train = ds_train.cache()
+ds_train = ds_train.shuffle(ds_info.splits['train'].num_examples)
+ds_train = ds_train.batch(128)
+ds_train = ds_train.prefetch(tf.data.AUTOTUNE)
 
-model = Sequential()
-model.add(Conv2D(28, kernel_size=(3,3), input_shape=input_shape))
-model.add(MaxPooling2D(pool_size=(2, 2)))
-model.add(Flatten()) # Flattening the 2D arrays for fully connected layers
-model.add(Dense(128, activation=tf.nn.relu))
-model.add(Dropout(0.2))
-model.add(Dense(10,activation=tf.nn.softmax))
+ds_test = ds_test.map(
+    normalize_img, num_parallel_calls=tf.data.AUTOTUNE)
+ds_test = ds_test.batch(128)
+ds_test = ds_test.cache()
+ds_test = ds_test.prefetch(tf.data.AUTOTUNE)
 
-model.compile(optimizer='adam', 
-              loss='sparse_categorical_crossentropy', 
-              metrics=['accuracy'])
+model = tf.keras.models.Sequential([
+  tf.keras.layers.Flatten(input_shape=(28, 28)),
+  tf.keras.layers.Dense(128, activation='relu'),
+  tf.keras.layers.Dense(10)
+])
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(0.001),
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
+)
 
-model.fit(x=x_train, y=y_train, epochs=10)
-model.evaluate(x_test, y_test)
+model.fit(
+    ds_train,
+    epochs=6,
+    validation_data=ds_test,
+)

@@ -1,8 +1,4 @@
 import tensorflow as tf
-
-# fix 2.11 incompatibility with metal implementation
-from tensorflow.keras.optimizers.legacy import Adam
-
 import tensorflow_datasets as tfds
 
 (ds_train, ds_test), ds_info = tfds.load(
@@ -36,7 +32,7 @@ model = tf.keras.models.Sequential([
   tf.keras.layers.Dense(10)
 ])
 model.compile(
-    optimizer=Adam(0.001),
+    optimizer=tf.keras.optimizers.Adam(0.001),
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
 )
